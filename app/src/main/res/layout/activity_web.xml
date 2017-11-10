@@ -8,12 +8,12 @@
         android:id="@+id/pull"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <com.warm.library.Header
+        <com.warm.pullrefresh.Header
             android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        </com.warm.library.Header>
+        </com.warm.pullrefresh.Header>
 
         <WebView
             android:id="@+id/wv"

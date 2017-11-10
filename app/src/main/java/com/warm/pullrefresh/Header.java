@@ -3,9 +3,10 @@ package com.warm.pullrefresh;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.warm.library.BaseHeader;
+import com.warm.library.OnPullStateChange;
 import com.warm.library.State;
 
 
@@ -13,7 +14,7 @@ import com.warm.library.State;
  * Created by warm on 17/6/9.
  */
 
-public class Header extends BaseHeader  {
+public class Header extends RelativeLayout implements OnPullStateChange {
     private static final String TAG = "Header";
     private TextView tv_state;
     private ProgressBar pb;
@@ -34,7 +35,7 @@ public class Header extends BaseHeader  {
     }
 
     @Override
-    protected void changeState(int state) {
+    public void pullState(int state) {
         switch (state) {
 
             case State.PUSH_NO_OK:
@@ -58,7 +59,8 @@ public class Header extends BaseHeader  {
     }
 
     @Override
-    protected void changePull(float y) {
+    public void pulling(float y) {
+
 
     }
 

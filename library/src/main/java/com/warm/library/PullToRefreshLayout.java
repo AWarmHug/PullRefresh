@@ -45,6 +45,10 @@ public class PullToRefreshLayout extends ViewGroup {
 
     private void setState(int state) {
         this.state = state;
+
+        if (mHeader instanceof OnPullStateChange)
+            ((OnPullStateChange) mHeader).pullState(state);
+
         if (onPullStateChange != null) {
             onPullStateChange.pullState(state);
         }
@@ -176,22 +180,19 @@ public class PullToRefreshLayout extends ViewGroup {
             case MotionEvent.ACTION_MOVE:
 
 
-                Log.d(TAG, "dispatchTouchEvent: isDown="+isDown(ev.getY()));
-                if (isDown(ev.getY())) {
-                    if (!canChildScrollUp()) {
-                        //处理位置
-                        if (downY == 0) {
-                            downY = ev.getY();
-                        }
-                        moveY = ev.getY() - downY;
-                        Log.d(TAG, "dispatchTouchEvent: YYYY=" + moveY);
-
-                        scrollTo(0, (int) (-moveY / 2.5));
-
-                        return true;
-                    } else {
-                        downY = 0;
+                Log.d(TAG, "dispatchTouchEvent: isDown=" + isDown(ev.getY()));
+                if (isDown(ev.getY()) && !canChildScrollUp()) {
+                    //处理位置
+                    if (downY == 0) {
+                        downY = ev.getY();
                     }
+                    moveY = ev.getY() - downY;
+                    Log.d(TAG, "dispatchTouchEvent: YYYY=" + moveY);
+
+                    scrollTo(0, (int) (-moveY / 2.5));
+
+                    return true;
+
                 } else {
                     downY = 0;
                 }
@@ -233,14 +234,12 @@ public class PullToRefreshLayout extends ViewGroup {
 
     @Override
     public void computeScroll() {
-        super.computeScroll();
         if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             invalidate();
         }
 
         Log.d(TAG, "computeScroll2: " + getScrollY());
-
         //当滑动距离大于，最小距离（mHeader的高度）的时候，刷新，小于的时候回到顶端
         if (-getScrollY() >= headerHeight) {
             //可以加载了
@@ -249,6 +248,9 @@ public class PullToRefreshLayout extends ViewGroup {
             //不可以加载
             setState(State.PUSH_NO_OK);
         }
+
+        if (mHeader instanceof OnPullStateChange)
+        ((OnPullStateChange) mHeader).pulling(-getScrollY());
 
         if (onPullStateChange != null) {
             onPullStateChange.pulling(-getScrollY());
@@ -291,14 +293,7 @@ public class PullToRefreshLayout extends ViewGroup {
 
     }
 
-    /**
-     * 下拉状态改变，{@link State}
-     */
-    interface OnPullStateChange {
-        void pullState(int state);
 
-        void pulling(float y);
-    }
 
     /**
      * @param context
@@ -312,13 +307,13 @@ public class PullToRefreshLayout extends ViewGroup {
 
 
     private void ensureViews() {
-        if (getChildCount() > 2) {
-            throw new IllegalStateException("只能有两个自控件");
-        }
         if (mTarget == null || mHeader == null) {
+            if (getChildCount() > 2) {
+                throw new IllegalStateException("只能有两个自控件");
+            }
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
-                if (!(child instanceof BaseHeader)) {
+                if (!(child instanceof OnPullStateChange)) {
                     mTarget = child;
                 } else {
                     mHeader = child;
